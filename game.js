@@ -56,6 +56,7 @@ class Tetris {
     this.dropCounter = 0;
 
     this.startBtn.addEventListener('click', () => this.start());
+    document.getElementById('overlayStartBtn').addEventListener('click', () => this.start());
     this.pauseBtn.addEventListener('click', () => this.togglePause());
     document.addEventListener('keydown', (e) => this.handleKey(e));
 
