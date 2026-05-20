@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>테트리스</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-wrapper">
+    <div class="game-container">
+      <canvas id="board" width="300" height="600"></canvas>
+    </div>
+
+    <div class="side-panel">
+      <h1 class="title">테트리스</h1>
+
+      <div class="info-box">
+        <div class="label">다음 블록</div>
+        <canvas id="next" width="120" height="120"></canvas>
+      </div>
+
+      <div class="info-box">
+        <div class="label">점수</div>
+        <div class="value" id="score">0</div>
+      </div>
+
+      <div class="info-box">
+        <div class="label">레벨</div>
+        <div class="value" id="level">1</div>
+      </div>
+
+      <div class="info-box">
+        <div class="label">라인</div>
+        <div class="value" id="lines">0</div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn">시작</button>
+        <button id="pauseBtn" class="btn" disabled>일시정지</button>
+      </div>
+
+      <div class="key-guide">
+        <div class="guide-title">조작법</div>
+        <div class="guide-item"><span class="key">←→</span> 이동</div>
+        <div class="guide-item"><span class="key">↑</span> 회전</div>
+        <div class="guide-item"><span class="key">↓</span> 빠르게</div>
+        <div class="guide-item"><span class="key">Space</span> 즉시 낙하</div>
+        <div class="guide-item"><span class="key">P</span> 일시정지</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay">
+    <div class="overlay-content">
+      <div id="overlayTitle" class="overlay-title">테트리스</div>
+      <div id="overlayMessage" class="overlay-message">시작 버튼을 누르세요</div>
+      <div id="overlayScore" class="overlay-score"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
