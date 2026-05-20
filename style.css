@@ -8,24 +8,29 @@ body {
   background: #0a0a1a;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
+  padding: 24px 12px;
   font-family: 'Segoe UI', sans-serif;
   color: #fff;
+  overflow-x: auto;
 }
 
+/* ── 전체 래퍼 ── */
 .game-wrapper {
   display: flex;
-  gap: 24px;
   align-items: flex-start;
-  position: relative;
+  gap: 0;
 }
 
+/* ── 보드 컨테이너 ── */
 .game-container {
   position: relative;
+  flex-shrink: 0;
 }
 
-#board {
+#board1,
+#board2 {
   display: block;
   border: 2px solid #333;
   border-radius: 4px;
@@ -33,87 +38,113 @@ body {
   box-shadow: 0 0 30px rgba(100, 150, 255, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
+/* ── 사이드 패널 공통 ── */
 .side-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 160px;
+  gap: 12px;
+  width: 150px;
+  flex-shrink: 0;
 }
 
-.title {
-  font-size: 28px;
+.side-panel--left {
+  margin-right: 16px;
+}
+
+.side-panel--right {
+  margin-left: 16px;
+}
+
+/* ── 플레이어 타이틀 ── */
+.player-title {
+  font-size: 24px;
   font-weight: 900;
   text-align: center;
   letter-spacing: 4px;
-  color: #7af;
-  text-shadow: 0 0 20px rgba(100, 180, 255, 0.8);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
+.p1-color {
+  color: #4af;
+  text-shadow: 0 0 18px rgba(68, 170, 255, 0.8);
+}
+
+.p2-color {
+  color: #f84;
+  text-shadow: 0 0 18px rgba(255, 136, 68, 0.8);
+}
+
+/* ── 정보 박스 ── */
 .info-box {
   background: #111122;
   border: 1px solid #223;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 8px 12px;
 }
 
 .info-box .label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: #556;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .info-box .value {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   color: #eef;
   font-variant-numeric: tabular-nums;
 }
 
-#next {
+#next1,
+#next2 {
   display: block;
   margin: 4px auto 0;
   background: transparent;
 }
 
+/* ── 버튼 ── */
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn {
   width: 100%;
-  padding: 10px;
+  padding: 9px;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   letter-spacing: 1px;
   transition: all 0.15s;
 }
 
-.btn:first-child {
+.btn-start {
   background: linear-gradient(135deg, #4af, #26d);
   color: #fff;
 }
 
-.btn:first-child:hover {
+.btn-start:hover {
   background: linear-gradient(135deg, #6cf, #48f);
   transform: translateY(-1px);
 }
 
-.btn:last-child {
+.btn-pause {
   background: #222;
   color: #889;
   border: 1px solid #334;
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  margin-top: 8px;
 }
 
-.btn:last-child:not(:disabled):hover {
+.btn-pause:not(:disabled):hover {
   background: #333;
   color: #aab;
 }
@@ -123,29 +154,58 @@ body {
   cursor: not-allowed;
 }
 
+/* ── 중앙 구분선 ── */
+.divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  flex-shrink: 0;
+  height: 600px;
+  gap: 0;
+}
+
+.divider-line {
+  flex: 1;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #334, transparent);
+}
+
+.divider-title {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #445;
+  padding: 12px 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* ── 키 가이드 ── */
 .key-guide {
   background: #111122;
   border: 1px solid #223;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 8px 12px;
 }
 
 .guide-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: #556;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
 
 .guide-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 11px;
   color: #778;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .guide-item:last-child {
@@ -156,74 +216,69 @@ body {
   background: #1a1a2e;
   border: 1px solid #334;
   border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 11px;
+  padding: 1px 5px;
+  font-size: 10px;
   color: #aac;
   font-family: monospace;
 }
 
-.overlay {
-  position: fixed;
+/* ── 보드 내 오버레이 (각 플레이어 독립) ── */
+.board-overlay {
+  position: absolute;
   inset: 0;
-  background: rgba(0, 0, 10, 0.85);
+  background: rgba(0, 0, 10, 0.88);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  border-radius: 4px;
   backdrop-filter: blur(3px);
+  z-index: 10;
 }
 
-.overlay.hidden {
+.board-overlay.hidden {
   display: none;
 }
 
-.overlay-content {
+.board-overlay-content {
   text-align: center;
-  padding: 40px 60px;
+  padding: 28px 32px;
   background: #0e0e22;
   border: 1px solid #334;
-  border-radius: 16px;
-  box-shadow: 0 0 60px rgba(100, 150, 255, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 0 40px rgba(100, 150, 255, 0.2);
 }
 
-.overlay-title {
-  font-size: 42px;
+.board-overlay-title {
+  font-size: 32px;
   font-weight: 900;
-  letter-spacing: 6px;
+  letter-spacing: 4px;
   color: #7af;
-  text-shadow: 0 0 30px rgba(100, 180, 255, 0.9);
-  margin-bottom: 12px;
+  text-shadow: 0 0 24px rgba(100, 180, 255, 0.9);
+  margin-bottom: 8px;
 }
 
-.overlay-message {
-  font-size: 16px;
+.board-overlay-message {
+  font-size: 13px;
   color: #668;
   letter-spacing: 1px;
 }
 
-.overlay-score {
-  font-size: 22px;
+.board-overlay-score {
+  font-size: 18px;
   font-weight: 700;
   color: #eef;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .overlay-btn {
-  margin-top: 24px;
-  padding: 12px 40px;
+  margin-top: 18px;
+  padding: 10px 32px;
   width: auto;
-  font-size: 16px;
-  background: linear-gradient(135deg, #4af, #26d);
-  color: #fff;
-  border-radius: 8px;
+  font-size: 14px;
   letter-spacing: 2px;
 }
 
-.overlay-btn:hover {
-  background: linear-gradient(135deg, #6cf, #48f);
-  transform: translateY(-1px);
-}
-
+/* ── 애니메이션 ── */
 @keyframes flash {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }

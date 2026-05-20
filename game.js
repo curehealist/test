@@ -3,13 +3,13 @@ const ROWS = 20;
 const CELL = 30;
 const COLORS = [
   null,
-  '#00cfff', // I - 시안
-  '#ffd700', // O - 노랑
-  '#a020f0', // T - 보라
-  '#00e050', // S - 초록
-  '#ff3030', // Z - 빨강
-  '#ff8c00', // J - 주황
-  '#1e90ff', // L - 파랑
+  '#00f5ff', // I - 네온 시안
+  '#ffe600', // O - 비비드 옐로우
+  '#cc00ff', // T - 네온 퍼플
+  '#00ff88', // S - 네온 그린
+  '#ff1744', // Z - 비비드 레드
+  '#ff6d00', // J - 네온 오렌지
+  '#2979ff', // L - 비비드 블루
 ];
 
 const TETROMINOES = [
@@ -25,23 +25,40 @@ const TETROMINOES = [
 
 const SCORES = [0, 100, 300, 500, 800];
 const LEVEL_SPEED = [800, 700, 600, 500, 400, 320, 250, 190, 140, 100];
+const CLEAR_DURATION = 180;
 
 class Tetris {
-  constructor() {
-    this.board = document.getElementById('board');
+  /**
+   * @param {Object} opts
+   * @param {string} opts.boardId      - canvas ID for main board
+   * @param {string} opts.nextId       - canvas ID for next piece preview
+   * @param {string} opts.scoreId      - element ID for score display
+   * @param {string} opts.levelId      - element ID for level display
+   * @param {string} opts.linesId      - element ID for lines display
+   * @param {string} opts.overlayId    - board-level overlay container ID
+   * @param {string} opts.overlayTitleId
+   * @param {string} opts.overlayMessageId
+   * @param {string} opts.overlayScoreId
+   * @param {string} opts.startBtnId   - sidebar start button ID
+   * @param {string} opts.overlayStartBtnId
+   * @param {string} opts.playerLabel  - "P1 패배!" / "P2 패배!" 등
+   * @param {Object} opts.keyMap       - key string → action string mapping
+   */
+  constructor(opts) {
+    this.board = document.getElementById(opts.boardId);
     this.ctx = this.board.getContext('2d');
-    this.nextCanvas = document.getElementById('next');
+    this.nextCanvas = document.getElementById(opts.nextId);
     this.nextCtx = this.nextCanvas.getContext('2d');
 
-    this.scoreEl = document.getElementById('score');
-    this.levelEl = document.getElementById('level');
-    this.linesEl = document.getElementById('lines');
-    this.overlay = document.getElementById('overlay');
-    this.overlayTitle = document.getElementById('overlayTitle');
-    this.overlayMessage = document.getElementById('overlayMessage');
-    this.overlayScore = document.getElementById('overlayScore');
-    this.startBtn = document.getElementById('startBtn');
-    this.pauseBtn = document.getElementById('pauseBtn');
+    this.scoreEl = document.getElementById(opts.scoreId);
+    this.levelEl = document.getElementById(opts.levelId);
+    this.linesEl = document.getElementById(opts.linesId);
+    this.overlay = document.getElementById(opts.overlayId);
+    this.overlayTitle = document.getElementById(opts.overlayTitleId);
+    this.overlayMessage = document.getElementById(opts.overlayMessageId);
+    this.overlayScore = document.getElementById(opts.overlayScoreId);
+    this.playerLabel = opts.playerLabel;
+    this.keyMap = opts.keyMap;
 
     this.grid = this.createGrid();
     this.piece = null;
@@ -55,11 +72,10 @@ class Tetris {
     this.lastTime = 0;
     this.dropCounter = 0;
 
-    this.startBtn.addEventListener('click', () => this.start());
-    document.getElementById('overlayStartBtn').addEventListener('click', () => this.start());
-    this.pauseBtn.addEventListener('click', () => this.togglePause());
-    document.addEventListener('keydown', (e) => this.handleKey(e));
+    document.getElementById(opts.startBtnId).addEventListener('click', () => this.start());
+    document.getElementById(opts.overlayStartBtnId).addEventListener('click', () => this.start());
 
+    this.showOverlay(this.playerLabel, '시작 버튼을 누르세요', '');
     this.drawGrid();
   }
 
@@ -78,26 +94,24 @@ class Tetris {
     this.running = true;
     this.paused = false;
     this.overlay.classList.add('hidden');
-    this.pauseBtn.disabled = false;
-    this.pauseBtn.textContent = '일시정지';
     cancelAnimationFrame(this.animationId);
     this.lastTime = 0;
     this.dropCounter = 0;
     this.loop(0);
   }
 
-  togglePause() {
+  pause() {
     if (!this.running) return;
-    this.paused = !this.paused;
-    if (this.paused) {
-      this.pauseBtn.textContent = '계속하기';
-      this.showOverlay('일시정지', '계속하려면 P 또는 버튼을 누르세요', '');
-    } else {
-      this.pauseBtn.textContent = '일시정지';
-      this.overlay.classList.add('hidden');
-      this.lastTime = 0;
-      this.loop(0);
-    }
+    this.paused = true;
+    this.showOverlay(this.playerLabel, '일시정지 — P를 눌러 계속', '');
+  }
+
+  resume() {
+    if (!this.running || !this.paused) return;
+    this.paused = false;
+    this.overlay.classList.add('hidden');
+    this.lastTime = 0;
+    this.loop(0);
   }
 
   randomPiece() {
@@ -231,8 +245,6 @@ class Tetris {
 
   drawGrid() {
     const ctx = this.ctx;
-    ctx.strokeStyle = '#1a1a2e';
-    ctx.lineWidth = 0.5;
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const cell = this.grid[r][c];
@@ -240,6 +252,7 @@ class Tetris {
           this.drawCell(ctx, c, r, COLORS[cell]);
         } else {
           ctx.strokeStyle = '#1a1a2e';
+          ctx.lineWidth = 0.5;
           ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
         }
       }
@@ -251,10 +264,15 @@ class Tetris {
     const y = row * CELL;
     ctx.fillStyle = color;
     ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(x + 1, y + 1, CELL - 2, 4);
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillRect(x + 1, y + 1, CELL - 2, 5);
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(x + 1, y + 1, 4, CELL - 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.fillRect(x + 1, y + CELL - 5, CELL - 2, 4);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(x + 1, y + 1, CELL - 2, CELL - 2);
   }
 
   drawPiece(ctx, matrix, px, py, color) {
@@ -283,11 +301,13 @@ class Tetris {
 
   drawNext() {
     const ctx = this.nextCtx;
-    ctx.clearRect(0, 0, 120, 120);
+    const canvasW = this.nextCanvas.width;
+    const canvasH = this.nextCanvas.height;
+    ctx.clearRect(0, 0, canvasW, canvasH);
     const m = this.nextPiece.matrix;
-    const size = 24;
-    const offsetX = Math.floor((120 - m[0].length * size) / 2);
-    const offsetY = Math.floor((120 - m.length * size) / 2);
+    const size = 22;
+    const offsetX = Math.floor((canvasW - m[0].length * size) / 2);
+    const offsetY = Math.floor((canvasH - m.length * size) / 2);
     for (let r = 0; r < m.length; r++) {
       for (let c = 0; c < m[r].length; c++) {
         if (!m[r][c]) continue;
@@ -306,8 +326,11 @@ class Tetris {
   gameOver() {
     this.running = false;
     cancelAnimationFrame(this.animationId);
-    this.pauseBtn.disabled = true;
-    this.showOverlay('게임 오버', '다시 시작하려면 시작을 누르세요', `최종 점수: ${this.score.toLocaleString()}`);
+    if (typeof globalPaused !== 'undefined' && globalPaused) {
+      globalPaused = false;
+      if (typeof updatePauseBtn === 'function') updatePauseBtn();
+    }
+    this.showOverlay(`${this.playerLabel} 패배!`, '다시 시작하려면 시작을 누르세요', `최종 점수: ${this.score.toLocaleString()}`);
   }
 
   showOverlay(title, message, score) {
@@ -323,32 +346,138 @@ class Tetris {
     this.linesEl.textContent = this.lines;
   }
 
-  handleKey(e) {
-    if (!this.running) return;
-    if (e.key === 'p' || e.key === 'P') { this.togglePause(); return; }
-    if (this.paused) return;
-    switch (e.key) {
-      case 'ArrowLeft':
+  /**
+   * 이 인스턴스의 키맵에 해당하는 키 이벤트를 처리한다.
+   * 전역 pause 토글(P키)은 호출부에서 처리.
+   */
+  handleKey(key, e) {
+    const action = this.keyMap[key];
+    if (!action) return false;
+
+    if (!this.running) return true;
+    if (this.paused) {
+      e.preventDefault();
+      return true;
+    }
+
+    switch (action) {
+      case 'left':
         if (!this.collides(this.piece, -1, 0)) this.piece.x--;
-        e.preventDefault(); break;
-      case 'ArrowRight':
+        break;
+      case 'right':
         if (!this.collides(this.piece, 1, 0)) this.piece.x++;
-        e.preventDefault(); break;
-      case 'ArrowDown':
+        break;
+      case 'rotate':
+        this.rotatePiece();
+        break;
+      case 'softDrop':
         this.dropPiece();
         this.score += 1;
         this.updateUI();
         this.dropCounter = 0;
-        e.preventDefault(); break;
-      case 'ArrowUp':
-        this.rotatePiece();
-        e.preventDefault(); break;
-      case ' ':
+        break;
+      case 'hardDrop':
         this.hardDrop();
-        e.preventDefault(); break;
+        break;
     }
+    e.preventDefault();
     this.render();
+    return true;
   }
 }
 
-const game = new Tetris();
+// ── 인스턴스 생성 ──────────────────────────────────────────────
+
+const game1 = new Tetris({
+  boardId: 'board1',
+  nextId: 'next1',
+  scoreId: 'score1',
+  levelId: 'level1',
+  linesId: 'lines1',
+  overlayId: 'overlay1',
+  overlayTitleId: 'overlayTitle1',
+  overlayMessageId: 'overlayMessage1',
+  overlayScoreId: 'overlayScore1',
+  startBtnId: 'startBtn1',
+  overlayStartBtnId: 'overlayStartBtn1',
+  playerLabel: 'P1',
+  keyMap: {
+    'a': 'left',
+    'A': 'left',
+    'd': 'right',
+    'D': 'right',
+    'w': 'rotate',
+    'W': 'rotate',
+    's': 'softDrop',
+    'S': 'softDrop',
+    'q': 'hardDrop',
+    'Q': 'hardDrop',
+  },
+});
+
+const game2 = new Tetris({
+  boardId: 'board2',
+  nextId: 'next2',
+  scoreId: 'score2',
+  levelId: 'level2',
+  linesId: 'lines2',
+  overlayId: 'overlay2',
+  overlayTitleId: 'overlayTitle2',
+  overlayMessageId: 'overlayMessage2',
+  overlayScoreId: 'overlayScore2',
+  startBtnId: 'startBtn2',
+  overlayStartBtnId: 'overlayStartBtn2',
+  playerLabel: 'P2',
+  keyMap: {
+    'ArrowLeft': 'left',
+    'ArrowRight': 'right',
+    'ArrowUp': 'rotate',
+    'ArrowDown': 'softDrop',
+    ' ': 'hardDrop',
+  },
+});
+
+// ── 전역 키 핸들러 ─────────────────────────────────────────────
+
+let globalPaused = false;
+
+const pauseBtn = document.getElementById('pauseBtn');
+
+function updatePauseBtn() {
+  const eitherRunning = game1.running || game2.running;
+  pauseBtn.disabled = !eitherRunning;
+  pauseBtn.textContent = globalPaused ? '계속하기' : '일시정지';
+}
+
+function toggleGlobalPause() {
+  const eitherRunning = game1.running || game2.running;
+  if (!eitherRunning) return;
+
+  globalPaused = !globalPaused;
+
+  if (globalPaused) {
+    game1.pause();
+    game2.pause();
+  } else {
+    game1.resume();
+    game2.resume();
+  }
+  updatePauseBtn();
+}
+
+pauseBtn.addEventListener('click', toggleGlobalPause);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'p' || e.key === 'P') {
+    toggleGlobalPause();
+    e.preventDefault();
+    return;
+  }
+
+  const gameKeys = new Set(['a','A','d','D','w','W','s','S','q','Q',
+    'ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ']);
+  if (gameKeys.has(e.key)) e.preventDefault();
+
+  game1.handleKey(e.key, e);
+  game2.handleKey(e.key, e);
+});
